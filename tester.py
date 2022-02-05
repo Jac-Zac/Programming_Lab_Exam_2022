@@ -174,7 +174,7 @@ class TestAndGrade(unittest.TestCase):
             global score; score += 1 # Increase score
 
 
-    def test_csv_file_passengers_duplicates(self):
+    def test_csv_file_date_duplicates(self):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
@@ -258,7 +258,7 @@ class TestAndGrade(unittest.TestCase):
             file.write('date,passengers\n')
             file.write('1949-01,112\n')
             # Non cambio il valore chi se ne frega 
-            file.write('1949-01,SonoUnaTemperaturaNonValidaComeNumero\n') # Una temperature non valida
+            file.write('1949-02,SonoUnaTemperaturaNonValidaComeNumero\n') # Una temperature non valida
             file.write('1949-03,132\n')
             file.write('1949-05,121\n')
 
@@ -291,7 +291,7 @@ class TestAndGrade(unittest.TestCase):
 
             # Test su lunghezza e ultimo elemento
             self.assertEqual(len(time_series), 3)
-            self.assertEqual(time_series[1], ['1949-03', 121])
+            self.assertEqual(time_series[1], ['1949-03', 132])
 
             global score; score += 0.5 # Increase score
 
