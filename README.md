@@ -4,7 +4,9 @@
 
 #### You can clone the directory or just download the file any way you want
 
-```git clone https://github.com/Jac-Zac/Programming_Lab_Exam_2022.git```
+```
+git clone https://github.com/Jac-Zac/Programming_Lab_Exam_2022.git
+```
 
 #### Then you can run the file to test your code
 
