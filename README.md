@@ -1,6 +1,6 @@
 # Programming_Lab_Exam_2022
 
-## Usage
+## How to use the testing file :gear:
 
 #### You can clone the directory or just download the file any way you want
 
