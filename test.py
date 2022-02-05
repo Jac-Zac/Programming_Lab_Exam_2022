@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 #==============================
 # Test  
 #==============================
@@ -86,6 +87,7 @@ class TestAndGrade(unittest.TestCase):
     #===================================================
     #  Test che ci sia la variabile "name" nell'init
     #===================================================
+
     def test_csv_file_interface(self):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
@@ -107,6 +109,7 @@ class TestAndGrade(unittest.TestCase):
     #===================================================
     #  Test su errori esistenza e tipo del nome del file
     #===================================================
+
     def test_csv_file_interface_nonexisttent_file(self):
 
         with self.assertRaises(ExamException):
@@ -125,6 +128,172 @@ class TestAndGrade(unittest.TestCase):
             time_series_file.get_data()
 
         global score; score += 0.5 # Increase score
+
+    #======================================================
+    #  Test su varie cose da gestire riguardo ai passeggeri
+    #======================================================
+
+    def test_csv_file_passengers_floating_point(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            file.write('1949-01,112.1232\n')  # Epoch floating point
+            file.write('1949-02,-1213\n')  # Epoch floating point
+            file.write('1949-03, 100\n')  # Epoch floating point
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+
+            # Test su lunghezza ed elementi con passengers arrotondato correttamente
+            self.assertTrue(len(time_series), 1)
+            self.assertEqual(time_series[0], ['1949-03', 100])
+
+            global score; score += 1 # Increase score
+
+    def test_csv_file_date_unordered(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            file.write('1949-01,112\n')
+            file.write('1949-03,132\n')
+            file.write('1949-02,129\n')
+            file.write('1949-05,121\n')
+
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+
+            with self.assertRaises(ExamException):
+                time_series_file.get_data()
+
+            global score; score += 1 # Increase score
+
+
+    def test_csv_file_passengers_duplicates(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            file.write('1949-01,112\n')
+            file.write('1949-02,129\n')
+            file.write('1949-03,132\n')
+            file.write('1949-02,129\n')
+            file.write('1949-05,121\n')
+
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+
+            with self.assertRaises(ExamException):
+                time_series_file.get_data()
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+
+            with self.assertRaises(ExamException):
+                time_series_file.get_data()
+
+            global score; score += 1 # Increase score
+
+    #===================================================
+    #  Test su vari contenuti del file CSV sporcati
+    #===================================================
+
+    def test_csv_file_dirty_1(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            file.write('1949-01,112\n')
+            file.write('1949-02,129,HELLOOOOOOOWOOORLDDDDDDDDD\n\n')
+            file.write('1949-03,132\n')
+            file.write('1949-05,121\n')
+
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+
+            # Test su lunghezza e ultimo elemento
+            self.assertEqual(len(time_series), 4)
+            self.assertEqual(time_series[1], ['1949-02', 129])
+
+            global score; score += 0.5 # Increase score
+
+    def test_csv_file_dirty_2(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            file.write('1949-01,112\n')
+            file.write('\n') # Righe vuote in mezzo
+            file.write('Nel mezzo del cammin di nostra vita\n')  # Righe di testo senza senso in mezzo
+            file.write('mi son imbattuto in un test un po\' fastisioso\n')  # Righe di testo senza senso in mezzo (2)
+            file.write('1949-03,132\n')
+            file.write('1949-05,121\n')
+
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+
+            # Test su lunghezza e ultimo elemento
+            self.assertEqual(len(time_series), 3)
+            self.assertEqual(time_series[1], ['1949-03', 132])
+
+            global score; score += 0.5 # Increase score
+
+
+    def test_csv_file_dirty_3(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            file.write('date,passengers\n')
+            file.write('1949-01,112\n')
+            # Non cambio il valore chi se ne frega 
+            file.write('1949-01,SonoUnaTemperaturaNonValidaComeNumero\n') # Una temperature non valida
+            file.write('1949-03,132\n')
+            file.write('1949-05,121\n')
+
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+
+            # Test su lunghezza e ultimo elemento
+            self.assertEqual(len(time_series), 3)
+            self.assertEqual(time_series[2], ['1949-05', 121])
+
+            global score; score += 0.5 # Increase score
+
+
+    def test_csv_file_dirty_4(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('1949-01,112\n')
+            # Non cambio il valore chi se ne frega 
+            file.write('SonoUnaEpochNonValidaComeNumero,134\n') # Un timestamp passengers non valido
+            file.write('1949-03,132\n')
+            file.write('1949-05,121\n')
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+
+            # Test su lunghezza e ultimo elemento
+            self.assertEqual(len(time_series), 3)
+            self.assertEqual(time_series[1], ['1949-03', 121])
+
+            global score; score += 0.5 # Increase score
 
     def test_csv_file_empty(self):
 
@@ -149,7 +318,7 @@ class TestAndGrade(unittest.TestCase):
         global score
 
         print('\n\n----------------')
-        print('| Voto: {}/20 |'.format(score))
+        print('| Voto: {}/25 |'.format(score))
         print('----------------\n')
 
 # Run the tests
