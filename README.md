@@ -17,6 +17,6 @@ If you want to test it, keep in mind that your code must be named exam.py and id
 - By giving permission to the file `chmod +x test.py` and then `test.py`
 - By running it `python test.py`
 
-### Resoults
+### Results
 
 The testing is not finished but It allows you to get a mark from 0 to 20, which tests a few essentials things.
