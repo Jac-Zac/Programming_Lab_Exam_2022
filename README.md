@@ -10,7 +10,7 @@ git clone https://github.com/Jac-Zac/Programming_Lab_Exam_2022.git
 
 #### Then you can run the file to test your code
 
-If you want to test it, keep in mind that your code must be named exam.py and id should also be in the same direcotry as the test.py file.
+If you want to test it, keep in mind that your code must be named exam.py and id should also be in a direcotry with also test.py.
 
 You can then decide to run it:
 
