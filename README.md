@@ -20,4 +20,4 @@ If you want to test it, keep in mind that your code must be named exam.py and id
 ## Results :trophy:
 
 The testing is not finished but It allows you to get a mark from 0 to 20, which tests a few essentials things.
-Also keep in mind that in your exam.py you are calling the functions with by giving them the file data.csv you need to have data.csv in the same directory for it to work. Thous I would suggest commentinig out any test you are doing when running the test.py
+Also keep in mind that if you are calling any functions with by data.csv in your exam.py you need to have data.csv in the same directory for it to work. Thous I would suggest commentinig out any test you are currently doing on your own when running the test.py
