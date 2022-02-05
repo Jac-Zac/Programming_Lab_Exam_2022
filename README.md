@@ -14,7 +14,7 @@ If you want to test it, keep in mind that your code must be named exam.py and id
 
 ### You can then decide to run it:
 
-- By giving permission to the file `chmod +x test.py` and then `test.py`
+- By giving permission to the file `chmod +x test.py` and then `./test.py`
 - By running it `python test.py`
 
 ### Results
