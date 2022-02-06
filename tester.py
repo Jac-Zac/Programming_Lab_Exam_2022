@@ -4,6 +4,7 @@
 # Test  
 #==============================
 
+import datetime
 import unittest
 import tempfile
 import warnings
@@ -17,7 +18,6 @@ class TestAndGrade(unittest.TestCase):
     # Roba per il testing
     def setUp(self):
         warnings.simplefilter("ignore", ResourceWarning)
-
 
     #===========================================================
     # Test per il 18: tre ore di dati, tutti i dati presenti.
@@ -78,11 +78,15 @@ class TestAndGrade(unittest.TestCase):
             time_series = time_series_file.get_data()
             results = compute_avg_monthly_difference(time_series,"1949","1951")
 
-            self.assertEqual(results[0], 16.5)
+            self.assertTrue(len(results) in [3,12])
             self.assertEqual(results[1], 16)
-            self.assertEqual(results[2], 23)
 
             global score; score += 18 # Increase score
+
+            # Controllo anche sull'ultima ora ed il suo cabio trend calcolato correttamente
+            if len(results) == 12:
+                if results[2] == 23:
+                    score += 1 # Increase score
 
     #===================================================
     #  Test che ci sia la variabile "name" nell'init
@@ -115,6 +119,7 @@ class TestAndGrade(unittest.TestCase):
         with self.assertRaises(ExamException):
             time_series_file = CSVTimeSeriesFile(name='file_non_esistente.csv')
             time_series_file.get_data()
+
         global score; score += 0.5 # Increase score
 
     def test_csv_file_interface_wrong_type(self):
@@ -129,6 +134,23 @@ class TestAndGrade(unittest.TestCase):
 
         global score; score += 0.5 # Increase score
 
+    def test_csv_file_empty(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+
+            try:
+                time_series = time_series_file.get_data()
+            except ExamException:
+                pass
+
+            global score; score += 0.5 # Increase score
+
     #======================================================
     #  Test su varie cose da gestire riguardo ai passeggeri
     #======================================================
@@ -139,6 +161,7 @@ class TestAndGrade(unittest.TestCase):
 
             # Scrivo i contenuti nel file di test
             file.write('date,passengers\n')
+
             file.write('1949-01,112.1232\n')  # Epoch floating point
             file.write('1949-02,-1213\n')  # Epoch floating point
             file.write('1949-03, 100\n')  # Epoch floating point
@@ -158,11 +181,14 @@ class TestAndGrade(unittest.TestCase):
         with tempfile.NamedTemporaryFile('w+t') as file:
 
             # Scrivo i contenuti nel file di test
+            date = datetime.datetime.strptime('1950-01', '%Y-%m')
+
             file.write('date,passengers\n')
-            file.write('1949-01,112\n')
-            file.write('1949-03,132\n')
-            file.write('1949-02,129\n')
-            file.write('1949-05,121\n')
+
+            for i in range(30):
+                file.write('{:%Y-%m},{}\n'.format(date, (i+1)))
+                date = date + datetime.timedelta(days= 31)
+            file.write('1949-03,132\n') # Un timestamp epoch non valido
 
             file.seek(0)
 
@@ -173,18 +199,19 @@ class TestAndGrade(unittest.TestCase):
 
             global score; score += 1 # Increase score
 
-
     def test_csv_file_date_duplicates(self):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
+            date = datetime.datetime.strptime('1950-01', '%Y-%m')
+
             # Scrivo i contenuti nel file di test
             file.write('date,passengers\n')
-            file.write('1949-01,112\n')
-            file.write('1949-02,129\n')
-            file.write('1949-03,132\n')
-            file.write('1949-02,129\n')
-            file.write('1949-05,121\n')
+
+            for i in range(30):
+                file.write('{:%Y-%m},{}\n'.format(date, (i+1)))
+                date = date + datetime.timedelta(days= 31)
+            file.write('1950-01,12131\n') # Un timestamp epoch non valido
 
             file.seek(0)
 
@@ -208,21 +235,25 @@ class TestAndGrade(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
+            date = datetime.datetime.strptime('1950-01', '%Y-%m')
+
             # Scrivo i contenuti nel file di test
             file.write('date,passengers\n')
-            file.write('1949-01,112\n')
-            file.write('1949-02,129,HELLOOOOOOOWOOORLDDDDDDDDD\n\n')
-            file.write('1949-03,132\n')
-            file.write('1949-05,121\n')
+
+            for i in range(30):
+                file.write('{:%Y-%m},{},HELLOOOOOOOWOOORLDDDDDDDDD\n\n'.format(date, (i+1)))
+                date += datetime.timedelta(days=31)
 
             file.seek(0)
 
             time_series_file = CSVTimeSeriesFile(file.name)
             time_series = time_series_file.get_data()
 
+            date = date + datetime.timedelta(days= -31)
+            test = datetime.datetime.strftime(date, "%Y-%m")
             # Test su lunghezza e ultimo elemento
-            self.assertEqual(len(time_series), 4)
-            self.assertEqual(time_series[1], ['1949-02', 129])
+            self.assertEqual(len(time_series), 30)
+            self.assertEqual(time_series[29], [test,30])
 
             global score; score += 0.5 # Increase score
 
@@ -230,46 +261,58 @@ class TestAndGrade(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
+            date = datetime.datetime.strptime('1950-01', '%Y-%m')
+
             # Scrivo i contenuti nel file di test
             file.write('date,passengers\n')
-            file.write('1949-01,112\n')
-            file.write('\n') # Righe vuote in mezzo
-            file.write('Nel mezzo del cammin di nostra vita\n')  # Righe di testo senza senso in mezzo
-            file.write('mi son imbattuto in un test un po\' fastisioso\n')  # Righe di testo senza senso in mezzo (2)
-            file.write('1949-03,132\n')
-            file.write('1949-05,121\n')
+
+            for i in range(30):
+                file.write('{:%Y-%m},{}\n'.format(date, (i+1)))
+                file.write('\n') # Righe vuote in mezzo
+                file.write('Nel mezzo del cammin di nostra vita\n')  # Righe di testo senza senso in mezzo
+                file.write('mi son imbattuto in un test un po\' fastisioso\n')  # Righe di testo senza senso in mezzo (2)
+                date = date + datetime.timedelta(days= 31)
 
             file.seek(0)
 
             time_series_file = CSVTimeSeriesFile(file.name)
             time_series = time_series_file.get_data()
 
+            date = date + datetime.timedelta(days= -31)
+            test = datetime.datetime.strftime(date, "%Y-%m")
             # Test su lunghezza e ultimo elemento
-            self.assertEqual(len(time_series), 3)
-            self.assertEqual(time_series[1], ['1949-03', 132])
+            self.assertEqual(len(time_series), 30)
+            self.assertEqual(time_series[29], [test,30])
 
             global score; score += 0.5 # Increase score
-
 
     def test_csv_file_dirty_3(self):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
+            date = datetime.datetime.strptime('1950-01', '%Y-%m')
+
+            # Scrivo i contenuti nel file di test
             file.write('date,passengers\n')
-            file.write('1949-01,112\n')
+
+            for i in range(30):
+                file.write('{:%Y-%m},{}\n'.format(date, (i+1)))
+                date = date + datetime.timedelta(days= 31)
+                file.write('{:%Y-%m},SonoUnaTemperaturaNonValidaComeNumero\n'.format(date)) # Una temperature non valida
+                date = date + datetime.timedelta(days= 31)
             # Non cambio il valore chi se ne frega 
-            file.write('1949-02,SonoUnaTemperaturaNonValidaComeNumero\n') # Una temperature non valida
-            file.write('1949-03,132\n')
-            file.write('1949-05,121\n')
 
             file.seek(0)
 
             time_series_file = CSVTimeSeriesFile(file.name)
             time_series = time_series_file.get_data()
 
+            date = date + datetime.timedelta(days= -62)
+            test = datetime.datetime.strftime(date, "%Y-%m")
+
             # Test su lunghezza e ultimo elemento
-            self.assertEqual(len(time_series), 3)
-            self.assertEqual(time_series[2], ['1949-05', 121])
+            self.assertEqual(len(time_series), 30)
+            self.assertEqual(time_series[29], [test,30])
 
             global score; score += 0.5 # Increase score
 
@@ -278,37 +321,26 @@ class TestAndGrade(unittest.TestCase):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
+            date = datetime.datetime.strptime('1950-01', '%Y-%m')
+
             # Scrivo i contenuti nel file di test
-            file.write('1949-01,112\n')
-            # Non cambio il valore chi se ne frega 
-            file.write('SonoUnaEpochNonValidaComeNumero,134\n') # Un timestamp passengers non valido
-            file.write('1949-03,132\n')
-            file.write('1949-05,121\n')
+            file.write('date,passengers\n')
+
+            for i in range(30):
+                file.write('{:%Y-%m},{}\n'.format(date, (i+1)))
+                file.write('SonoUnaEpochNonValidaComeNumero,134\n') # Un timestamp passengers non valido
+                date = date + datetime.timedelta(days= 31)
+
             file.seek(0)
 
             time_series_file = CSVTimeSeriesFile(file.name)
             time_series = time_series_file.get_data()
 
-            # Test su lunghezza e ultimo elemento
-            self.assertEqual(len(time_series), 3)
-            self.assertEqual(time_series[1], ['1949-03', 132])
+            date = date + datetime.timedelta(days= -31)
+            test = datetime.datetime.strftime(date, "%Y-%m")
 
-            global score; score += 0.5 # Increase score
-
-    def test_csv_file_empty(self):
-
-        with tempfile.NamedTemporaryFile('w+t') as file:
-
-            # Scrivo i contenuti nel file di test
-            file.write('date,passengers\n')
-
-
-            time_series_file = CSVTimeSeriesFile(file.name)
-
-            try:
-                time_series = time_series_file.get_data()
-            except ExamException:
-                pass
+            self.assertEqual(len(time_series), 30)
+            self.assertEqual(time_series[29], [test,30])
 
             global score; score += 0.5 # Increase score
 
@@ -318,7 +350,7 @@ class TestAndGrade(unittest.TestCase):
         global score
 
         print('\n\n----------------')
-        print('| Voto: {}/25 |'.format(score))
+        print('| Voto: {}/26 |'.format(score))
         print('----------------\n')
 
 # Run the tests
