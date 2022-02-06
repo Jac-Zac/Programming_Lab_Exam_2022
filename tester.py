@@ -78,7 +78,7 @@ class TestAndGrade(unittest.TestCase):
             time_series = time_series_file.get_data()
             results = compute_avg_monthly_difference(time_series,"1949","1951")
 
-            self.assertTrue(len(results) in [3,12])
+            self.assertTrue(len(results) in range(2,13))
             self.assertEqual(results[0], 16.5)
             self.assertEqual(results[1], 16)
 
@@ -88,6 +88,87 @@ class TestAndGrade(unittest.TestCase):
             if len(results) == 12:
                 if results[2] == 23:
                     score += 1 # Increase score
+
+        #=====================================================
+    # Controllo su cambi ora al limite
+    #=====================================================
+
+    def test_correctness_last_day(self):
+
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            # Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            epoch=3600
+            for i in range(3):
+                for j in range(6):
+                    if j<3:
+                        data='{},{}\n'.format(epoch, 20+j)
+                    else:
+                        data='{},{}\n'.format(epoch, 26-j)
+                    file.write(data)
+                    epoch+=600
+
+            file.seek(0) # Torno all'inizio del file (necessario per i tmpfile)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+            results = compute_avg_monthly_difference(time_series)
+
+            self.assertEqual(results[0], 1)
+            self.assertEqual(results[1], 2)
+            self.assertEqual(results[2], 2)
+
+            global score; score += 2 # Increase score
+
+
+
+    #===================================================
+    # Due anni uno con valori mancanti 
+    #===================================================
+
+    def test_correctness_edge_cases_1(self):
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            file.write('date,passenger\n')
+
+            # First year
+            file.write('1949-01,112\n')
+            file.write('1949-02,118\n')
+            file.write('1949-04,129\n')
+            file.write('1949-05,121\n')
+            file.write('1949-06,135\n')
+            file.write('1949-08,148\n')
+            file.write('1949-09,136\n')
+            file.write('1949-10,119\n')
+            file.write('1949-11,104\n')
+            file.write('1949-12,118\n')
+
+            # Second year
+            file.write('1950-01,115\n')
+            file.write('1950-02,126\n')
+            file.write('1950-04,135\n')
+            file.write('1950-05,125\n')
+            file.write('1950-06,149\n')
+            file.write('1950-07,170\n')
+            file.write('1950-08,170\n')
+            file.write('1950-10,133\n')
+            file.write('1950-11,114\n')
+            file.write('1950-12,140\n')
+
+            # Torno all'inizio del file
+            file.seek(0)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+            results = compute_avg_monthly_difference(time_series, "1949" ,"1950")
+
+            self.assertEqual(results[2], 0)
+            self.assertEqual(results[6], 0)
+            self.assertEqual(results[8], 0)
+            self.assertNotEqual(results[11], 0)
+
+            global score; score += 2 # Increase score
 
     #===================================================
     #  Test che ci sia la variabile "name" nell'init
@@ -351,7 +432,7 @@ class TestAndGrade(unittest.TestCase):
         global score
 
         print('\n\n----------------')
-        print('| Voto: {}/26 |'.format(score))
+        print('| Voto: {}/28 |'.format(score))
         print('----------------\n')
 
 # Run the tests
