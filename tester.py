@@ -79,6 +79,7 @@ class TestAndGrade(unittest.TestCase):
             results = compute_avg_monthly_difference(time_series,"1949","1951")
 
             self.assertTrue(len(results) in [3,12])
+            self.assertEqual(results[0], 16.5)
             self.assertEqual(results[1], 16)
 
             global score; score += 18 # Increase score
