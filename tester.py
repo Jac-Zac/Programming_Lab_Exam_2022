@@ -93,7 +93,7 @@ class TestAndGrade(unittest.TestCase):
     # Controllo su cambi ora al limite
     #=====================================================
 
-    def test_correctness_last_day(self):
+    def test_correctness_all(self):
 
         with tempfile.NamedTemporaryFile('w+t') as file:
 
@@ -131,11 +131,17 @@ class TestAndGrade(unittest.TestCase):
             time_series = time_series_file.get_data()
             results = compute_avg_monthly_difference(time_series,"1949","1953")
 
-            self.assertEqual(results[0], 0)
-            self.assertEqual(results[1], 7470.5)
-            self.assertEqual(results[11], 13294)
+            global score
 
-            global score; score += 2 # Increase score
+            self.assertEqual(results[0], 0)
+            if results[1] == 7470.5:
+                score += 1 # Increase score
+            else:
+                print("First result was wrong in test_correctness_all")
+            if results[11] == 13294:
+                score += 1 # Increase score
+            else:
+                print("Second result was wrong in test_correctness_all")
 
     #===================================================
     # Due anni uno con valori mancanti 
