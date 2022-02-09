@@ -3,4 +3,3 @@
 # Ignore __pycache__directory
 __pycache__/
 *.py[cod]
-esame.py
