@@ -1,5 +1,7 @@
 # Programming_Lab_Exam_2022
 
+## This project has a tester and my exam solution
+
 ## How to use the testing file :gear:
 
 #### You can clone the directory or just download the file any way you want
@@ -19,5 +21,5 @@ If you want to test it, keep in mind that your code must be named exam.py and id
 
 ## Results :trophy:
 
-The testing is not finished but It allows you to get a mark from 0 to 25, which tests a few essentials things.
+The testing is a bit arbitrary since different people might want different outcomes but it will give you a mark from 0 to 30.
 Also keep in mind that if you are calling any functions with by data.csv in your exam.py you need to have data.csv in the same directory for it to work. Thous I would suggest commenting out any test you are currently doing on your own when running the tester.py

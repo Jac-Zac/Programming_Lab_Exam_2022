@@ -93,35 +93,49 @@ class TestAndGrade(unittest.TestCase):
     # Controllo su cambi ora al limite
     #=====================================================
 
-    #def test_correctness_last_day(self):
-#
-        #with tempfile.NamedTemporaryFile('w+t') as file:
-#
-            ## Scrivo i contenuti nel file di test
-            #file.write('date,passengers\n')
-            #epoch=3600
-            #for i in range(3):
-                #for j in range(6):
-                    #if j<3:
-                        #data='{},{}\n'.format(epoch, 20+j)
-                    #else:
-                        #data='{},{}\n'.format(epoch, 26-j)
-                    #file.write(data)
-                    #epoch+=600
-#
-            #file.seek(0) # Torno all'inizio del file (necessario per i tmpfile)
-#
-            #time_series_file = CSVTimeSeriesFile(file.name)
-            #time_series = time_series_file.get_data()
-            #results = compute_avg_monthly_difference(time_series)
-#
-            #self.assertEqual(results[0], 1)
-            #self.assertEqual(results[1], 2)
-            #self.assertEqual(results[2], 2)
-#
-            #global score; score += 2 # Increase score
-#
+    def test_correctness_last_day(self):
 
+        with tempfile.NamedTemporaryFile('w+t') as file:
+
+            ## Scrivo i contenuti nel file di test
+            file.write('date,passengers\n')
+            file.write('1949-01,\n')
+            file.write('1949-02,118\n')
+            file.write('1949-03,\n')
+            file.write('1949-05,127.23\n')
+            file.write('1949-07, None\n')
+            file.write('1949-06, 1242\n')
+            file.write('SonoUnaEpochNonValidaComeNumero,134\n')
+            file.write('1949-10, 119\n')
+            file.write('1949-08,-148\n')
+            file.write('1949-11,\n')
+            file.write('1949-12,118\n')
+            file.write('1950-01,\n')
+            file.write('1950-02,126\n')
+            file.write('1950-03,9999\n')
+            file.write('1950-05,125\n')
+            file.write('1950-11,114\n')
+            file.write('1951-01,500\n')
+            file.write('1951-02,1000\n')
+            file.write('1951-03,\n')
+            file.write('1951-12,2000\n')
+            file.write('1952-02,3000\n')
+            file.write('1952-03,\n')
+            file.write('1952-12,20000\n')
+            file.write('1953-02,30000\n')
+            file.write('1953-12,40000\n')
+
+            file.seek(0) # Torno all'inizio del file (necessario per i tmpfile)
+
+            time_series_file = CSVTimeSeriesFile(file.name)
+            time_series = time_series_file.get_data()
+            results = compute_avg_monthly_difference(time_series,"1949","1953")
+
+            self.assertEqual(results[0], 0)
+            self.assertEqual(results[1], 7470.5)
+            self.assertEqual(results[11], 13294)
+
+            global score; score += 2 # Increase score
 
     #===================================================
     # Due anni uno con valori mancanti 
@@ -432,7 +446,7 @@ class TestAndGrade(unittest.TestCase):
         global score
 
         print('\n\n----------------')
-        print('| Voto: {}/28 |'.format(score))
+        print('| Voto: {}/30 |'.format(score))
         print('----------------\n')
 
 # Run the tests
